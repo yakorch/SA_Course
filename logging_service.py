@@ -10,6 +10,9 @@ logged_messages = {}
 @app.route(LOGGING_SERVICE.POST_suffix, methods=['POST'])
 def log_message():
     data = request.json
+    if not ("id" in data and "msg" in data):
+        return jsonify({"error": "Invalid message"}), 400
+
     logged_messages[data['id']] = data['msg']
 
     return jsonify({"status": "Message logged"}), 200

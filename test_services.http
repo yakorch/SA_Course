@@ -14,11 +14,17 @@ Accept: application/json
 POST http://127.0.0.1:5001/log
 Content-Type: application/json
 
-{"id": "well well well", "msg":"Hello, World!"}
+{"id": "well", "msg":"Hello, World!"}
 
 ###
 
 GET http://127.0.0.1:5001/logs
+Accept: application/json
+
+###
+
+
+GET http://127.0.0.1:5002/message
 Accept: application/json
 
 ###

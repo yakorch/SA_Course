@@ -17,17 +17,17 @@ def post_message():
 
     message_id = str(uuid.uuid4())
 
-    requests.post(LOGGING_SERVICE.get_POST_endpoint(), json={'id': message_id, 'msg': msg})
+    response = requests.post(LOGGING_SERVICE.get_POST_endpoint(), json={'id': message_id, 'msg': msg})
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to log the message'}), 500
+
     return jsonify({'message_id': message_id}), 200
 
 
 @app.route(FACADE_SERVICE.GET_suffix, methods=['GET'])
 def get_messages():
-
     logs = requests.get(LOGGING_SERVICE.get_GET_endpoint()).text
-
     static_message = requests.get(STATIC_SERVICE.get_GET_endpoint()).text
-    print(logs + '\n' + static_message)
     return logs + '\n' + static_message, 200
 
 

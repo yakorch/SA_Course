@@ -14,7 +14,7 @@ Accept: application/json
 POST http://127.0.0.1:5001/log
 Content-Type: application/json
 
-{"id": "well", "msg":"Hello, World!"}
+{"id": "some-uuid", "msg":"Hello, World!"}
 
 ###
 
@@ -28,3 +28,8 @@ GET http://127.0.0.1:5002/message
 Accept: application/json
 
 ###
+
+POST http://127.0.0.1:5000/message
+Content-Type: application/json
+
+{"msg":"Goodbye, World :("}

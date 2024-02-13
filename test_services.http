@@ -1,0 +1,24 @@
+POST http://127.0.0.1:5000/message
+Content-Type: application/json
+
+{"msg":"Hello, World!"}
+
+###
+
+GET http://127.0.0.1:5000/messages
+Accept: application/json
+
+###
+
+
+POST http://127.0.0.1:5001/log
+Content-Type: application/json
+
+{"id": "well well well", "msg":"Hello, World!"}
+
+###
+
+GET http://127.0.0.1:5001/logs
+Accept: application/json
+
+###

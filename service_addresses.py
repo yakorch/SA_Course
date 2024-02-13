@@ -36,10 +36,10 @@ class FacadeService(MicroService):
         self.GET_suffix = "/messages"
 
     def get_POST_endpoint(self):
-        return self.full_address + self.GET_suffix
+        return self.full_address + self.POST_suffix
 
     def get_GET_endpoint(self):
-        return self.full_address + self.POST_suffix
+        return self.full_address + self.GET_suffix
 
 
 class LoggingService(MicroService):

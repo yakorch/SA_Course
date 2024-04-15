@@ -99,7 +99,7 @@ I mapped this config file to necessary containers.
 Let's first start a producer:
 
 ```shell
-docker-compose -f ./docker-compose-q up hazel-push --build
+docker-compose -f ./docker-compose-q up hazel-push
 ```
 
 One sees in the output:
@@ -108,7 +108,7 @@ One sees in the output:
 Let's add two consumers:
 
 ```shell
-docker-compose -f docker-compose-q.yaml up --build --scale hazel-read=2
+docker-compose -f docker-compose-q.yaml up --scale hazel-read=2
 ```
 
 Let's examine their logs:
@@ -126,6 +126,9 @@ This makes sense because we have more consumers than producers.
 
 If you were to use the examples above, you might want to clean up:
 
-```
-docker rmi
+```shell
+unset HOST_IP
+unset HAZEL_LOCK
+
+docker rmi hazel-write:1.0
 ```

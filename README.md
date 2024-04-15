@@ -112,6 +112,7 @@ docker-compose -f docker-compose-q.yaml up --build --scale hazel-read=2
 ```
 
 Let's examine their logs:
+
 ![first consumer logs](./media/first-consumer-logs.png)
 
 ![second consumer logs](./media/second-consumer-logs.png)
@@ -120,3 +121,11 @@ I added poisson pill that is added back to the queue after being encountered so 
 We also see that sometimes the queue is empty and the consumers are waiting for the producer to produce more items.
 
 This makes sense because we have more consumers than producers.
+
+## Clean Up
+
+If you were to use the examples above, you might want to clean up:
+
+```
+docker rmi
+```

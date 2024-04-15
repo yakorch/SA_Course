@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  hazel-push:
+    image: hazel-push:1.0
+    build:
+      context: hazelcast_communication
+      dockerfile: Dockerfile-push
+    environment:
+      HOST_IP: "${HOST_IP}"
+    networks:
+      - hazelcast-network
+
+  hazel-read:
+    image: hazel-read:1.0
+    build:
+      context: hazelcast_communication
+      dockerfile: Dockerfile-read
+    environment:
+      HOST_IP: "${HOST_IP}"
+    networks:
+      - hazelcast-network
+
+networks:
+  hazelcast-network:
+    driver: bridge
+    name: hazelcast-network

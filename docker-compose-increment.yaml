@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  hazel-increment:
+    image: hazel-increment:1.0
+    build:
+      context: hazelcast_communication
+      dockerfile: Dockerfile-increment
+    environment:
+      HOST_IP: "${HOST_IP}"
+      HAZEL_LOCK: "${HAZEL_LOCK}"
+    networks:
+      - hazelcast-network
+
+networks:
+  hazelcast-network:
+    driver: bridge
+    name: hazelcast-network

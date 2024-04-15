@@ -1,0 +1,53 @@
+version: "3.8"
+
+x-common-settings: &common-settings
+  image: hazelcast/hazelcast:latest
+  volumes:
+  - ./hazelcast.xml:/opt/hazelcast/config/hazelcast-docker.xml
+  networks:
+    - hazelcast-network
+
+x-common-env: &common-env
+  HZ_CLUSTERNAME: dev
+  HAZELCAST_CONFIG: /opt/hazelcast/config/hazelcast-docker.xml
+
+services:
+  hazel-node-1:
+    <<: *common-settings
+    container_name: hazel-node-1
+    environment:
+      <<: *common-env
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
+    ports:
+      - "5701:5701"
+
+  hazel-node-2:
+    <<: *common-settings
+    container_name: hazel-node-2
+    environment:
+      <<: *common-env
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
+    ports:
+      - "5702:5701"
+
+  hazel-node-3:
+    <<: *common-settings
+    container_name: hazel-node-3
+    environment:
+      <<: *common-env
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
+    ports:
+      - "5703:5701"
+
+  management-center:
+    image: hazelcast/management-center:latest
+    container_name: hazel-management-center
+    ports:
+      - "8080:8080"
+    networks:
+      - hazelcast-network
+
+networks:
+  hazelcast-network:
+    driver: bridge
+    name: hazelcast-network

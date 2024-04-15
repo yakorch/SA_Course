@@ -99,7 +99,7 @@ I mapped this config file to necessary containers.
 Let's first start a producer:
 
 ```shell
-docker-compose -f ./docker-compose-q up hazel-push
+docker-compose -f ./docker-compose-q.yaml up hazel-push
 ```
 
 One sees in the output:

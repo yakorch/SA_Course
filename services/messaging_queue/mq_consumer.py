@@ -9,7 +9,7 @@ in_memory_messages_lock = Lock()
 
 def read_messages():
     with in_memory_messages_lock:
-        return in_memory_messages.values()
+        return list(in_memory_messages.values())
 
 
 def message_consumer():

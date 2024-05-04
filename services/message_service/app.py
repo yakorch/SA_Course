@@ -1,10 +1,13 @@
 import fastapi
 from services.message import Message
-
+from services.messaging_queue.mq_consumer import read_messages, subscribe_to_messages
 
 app = fastapi.FastAPI()
 
 
-@app.get("/message")
-async def root() -> Message:
-    return Message(text="A boring message.", identifier="00000000-0000-0000-0000-000000000000")
+subscribe_to_messages()
+
+
+@app.get("/messages")
+async def get_messages() -> list[str]:
+    return read_messages()

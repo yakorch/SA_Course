@@ -18,12 +18,14 @@ async def post_message(text: str) -> fastapi.Response:
         print(f"Encountered status code {response.status_code} while logging message: {response.text}")
         return fastapi.Response(content="FACADE: Failed to log message", status_code=500)
     
+    # TODO: send the message to the messages service
     return fastapi.Response(content="Message logged", status_code=201)
 
 
 @app.get("/messages")
 async def get_messages() -> list[str]:
-    message_service_response = requests.get(f"{MESSAGE_ENDPOINT}/message")
+    # TODO: read the messages from the messages service properly
+    message_service_response = requests.get(f"{get_random_message_endpoint()}/message")
 
     if message_service_response.status_code != 200:
         return fastapi.Response(content="Failed to get messages", status_code=500)

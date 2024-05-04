@@ -1,0 +1,128 @@
+version: "3.8"
+
+x-hz-common-settings: &hz-common-settings
+  image: hazelcast/hazelcast:latest
+  networks:
+    - hazelcast-network
+
+x-common-env: &hz-common-env
+  HZ_CLUSTERNAME: dev
+
+services:
+  hazel-node-1:
+    <<: *hz-common-settings
+    container_name: hazel-node-1
+    environment:
+      <<: *hz-common-env
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
+    ports:
+      - "5701:5701"
+
+  hazel-node-2:
+    <<: *hz-common-settings
+    container_name: hazel-node-2
+    environment:
+      <<: *hz-common-env
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
+    ports:
+      - "5702:5701"
+
+  hazel-node-3:
+    <<: *hz-common-settings
+    container_name: hazel-node-3
+    environment:
+      <<: *hz-common-env
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
+    ports:
+      - "5703:5701"
+
+  hazel-node-mq:
+    image: hazelcast/hazelcast:latest
+    container_name: hazel-node-mq
+    networks:
+      - services-network
+    environment:
+      HZ_CLUSTERNAME: mq
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+    ports:
+      - "5704:5701"
+
+  management-center:
+    image: hazelcast/management-center:latest
+    container_name: hazel-management-center
+    ports:
+      - "8080:8080"
+    networks:
+      - hazelcast-network
+      - services-network
+
+  logging-service-1:
+    image: logging-service
+    build:
+      context: .
+      dockerfile: services/logging_service/Dockerfile
+    container_name: logging-service-1
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
+      PORT: 8980
+    networks:
+      - hazelcast-network
+      - services-network
+    volumes:
+      - .:/code
+    depends_on:
+      - hazel-node-1
+    ports:
+      - "8980:8980"
+
+  logging-service-2:
+    image: logging-service
+    build:
+      context: .
+      dockerfile: services/logging_service/Dockerfile
+    container_name: logging-service-2
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
+      PORT: 8981
+    networks:
+      - hazelcast-network
+      - services-network
+    volumes:
+      - .:/code
+    depends_on:
+      - hazel-node-2
+    ports:
+      - "8981:8981"
+
+  logging-service-3:
+    image: logging-service
+    build:
+      context: .
+      dockerfile: services/logging_service/Dockerfile
+    container_name: logging-service-3
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
+      PORT: 8982
+    networks:
+      - hazelcast-network
+      - services-network
+    volumes:
+      - .:/code
+    depends_on:
+      - hazel-node-3
+    ports:
+      - "8982:8982"
+
+  # messages-service-1: ...
+  # messages-service-2: ...
+
+  # facade-service: ...
+
+networks:
+  hazelcast-network:
+    driver: bridge
+    name: hazelcast-network
+
+  services-network:
+    driver: bridge
+    name: services-network

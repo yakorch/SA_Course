@@ -2,13 +2,10 @@ from services.message import Message
 
 from hazelcast import HazelcastClient
 
-client = HazelcastClient(
-    cluster_members=[
-        "127.0.0.1:5701",
-        "127.0.0.1:5702",
-        "127.0.0.1:5703"
-    ]
-)
+import os
+
+
+client = HazelcastClient(cluster_members=[os.getenv("HZ_NETWORK_PUBLICADDRESS")])
 
 hz_map = client.get_map("messages").blocking()
 

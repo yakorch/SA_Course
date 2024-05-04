@@ -1,4 +1,9 @@
 # Adding Messaging Queue between Facade and Messages services
+First, set an environment variable `HOST_IP` to your IP address:
+```shell
+export HOST_IP=$(ifconfig en0 | awk '/inet /{print $2}')  # macOS
+export HOST_IP=$(hostname -I | awk '{print $1}')  # Linux
+```
 Start all the services with:
 ```bash
 docker-compose up -d
@@ -43,4 +48,10 @@ We see that all logged messages were retrieved every time, and that the union of
 ## Cleanup
 ```bash
 docker-compose stop
+```
+
+```bash
+unset HOST_IP
+docker-compose down --rmi local
+docker rmi facade-service messages-service logging-service
 ```

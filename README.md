@@ -40,3 +40,7 @@ Service ports are accessed through environment variables to allow adaptability.
 </table>
 
 We see that all logged messages were retrieved every time, and that the union of two requests for the messaging service also results in all the sent messages.
+## Cleanup
+```bash
+docker-compose stop
+```

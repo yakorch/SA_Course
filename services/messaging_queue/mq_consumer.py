@@ -1,23 +1,29 @@
-from hazelcast import HazelcastClient
-import os
-
-
-client = HazelcastClient(
-    cluster_members=[os.getenv("HZ_CLUSTER_MEMBER")]
-)
-
-messaging_queue = client.get_queue("messaging_queue").blocking()
+from services.messaging_queue.connect_to_q import messaging_queue
+import logging
+from threading import Thread, Lock
+from services.message import Message
 
 in_memory_messages: dict[str, str] = {}
+in_memory_messages_lock = Lock()
 
 
 def read_messages():
-    return in_memory_messages.values()
+    with in_memory_messages_lock:
+        return in_memory_messages.values()
 
 
-def save_message(message):
-    print("Received message:", message)
+def message_consumer():
+    while True:
+        try:
+            message: Message = messaging_queue.take()
+            logging.info(f"Received and removed message from MQ: {message}")
+            with in_memory_messages_lock:
+                in_memory_messages[message.identifier] = message.text
+        except Exception as e:
+            logging.error(f"Failed to take message from the queue: {e}")
 
 
-def subscribe_to_messages() -> None:
-    messaging_queue.add_listener(save_message)
+def start_message_consumer():
+    consumer_thread = Thread(target=message_consumer)
+    consumer_thread.daemon = True
+    consumer_thread.start()

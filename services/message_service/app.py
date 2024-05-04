@@ -1,11 +1,12 @@
 import fastapi
 from services.message import Message
-from services.messaging_queue.mq_consumer import read_messages, subscribe_to_messages
+
+from services.messaging_queue.mq_consumer import read_messages, start_message_consumer
 
 app = fastapi.FastAPI()
 
 
-subscribe_to_messages()
+start_message_consumer()
 
 
 @app.get("/messages")

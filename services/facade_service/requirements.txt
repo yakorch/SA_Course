@@ -1,0 +1,5 @@
+uuid
+pydantic
+fastapi
+requests
+hazelcast-python-client

@@ -113,10 +113,64 @@ services:
     ports:
       - "8982:8982"
 
-  # messages-service-1: ...
-  # messages-service-2: ...
+  messages-service-1:
+    image: messages-service
+    build:
+      context: .
+      dockerfile: services/message_service/Dockerfile
+    container_name: messages-service-1
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+      PORT: 8180
+    networks:
+      - services-network
+    volumes:
+      - .:/code
+    depends_on:
+      - hazel-node-mq
+    ports:
+      - "8180:8180"
 
-  # facade-service: ...
+  messages-service-2:
+    image: messages-service
+    build:
+      context: .
+      dockerfile: services/message_service/Dockerfile
+    container_name: messages-service-2
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+      PORT: 8181
+    networks:
+      - services-network
+    volumes:
+      - .:/code
+    depends_on:
+      - hazel-node-mq
+    ports:
+      - "8181:8181"
+
+  facade-service:
+    image: facade-service
+    build:
+      context: .
+      dockerfile: services/facade_service/Dockerfile
+    container_name: facade-service
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+      PORT: 8000
+    networks:
+      - services-network
+    volumes:
+      - .:/code
+    depends_on:
+      - logging-service-1
+      - logging-service-2
+      - logging-service-3
+      - messages-service-1
+      - messages-service-2
+      - hazel-node-mq
+    ports:
+      - "8000:8000"
 
 networks:
   hazelcast-network:

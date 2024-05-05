@@ -12,6 +12,15 @@ x-consul-env: &consul-env
   CONSUL_HOST: "consul"
   CONSUL_PORT: 8500
 
+x-healthcheck: &healthcheck
+  healthcheck:
+    test:
+      ["CMD", "curl", "-f", "http://localhost:5701/hazelcast/health/node-state"]
+    interval: 3s
+    timeout: 1s
+    retries: 25
+    start_period: 10s
+
 services:
   hazel-node-1:
     <<: *hz-common-settings
@@ -20,18 +29,7 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:5701/hazelcast/health/node-state",
-        ]
-      interval: 5s
-      timeout: 1s
-      retries: 25
-      start_period: 10s
+    <<: *healthcheck
     ports:
       - "5701:5701"
 
@@ -42,18 +40,7 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:5702/hazelcast/health/node-state",
-        ]
-      interval: 5s
-      timeout: 1s
-      retries: 25
-      start_period: 10s
+    <<: *healthcheck
     ports:
       - "5702:5701"
 
@@ -64,18 +51,7 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:5703/hazelcast/health/node-state",
-        ]
-      interval: 5s
-      timeout: 1s
-      retries: 25
-      start_period: 10s
+    <<: *healthcheck
     ports:
       - "5703:5701"
 
@@ -86,20 +62,8 @@ services:
       - services-network
     environment:
       <<: *consul-env
-      HZ_CLUSTERNAME: mq
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:5704/hazelcast/health/node-state",
-        ]
-      interval: 5s
-      timeout: 1s
-      retries: 25
-      start_period: 10s
+    <<: *healthcheck
     ports:
       - "5704:5701"
 
@@ -136,7 +100,7 @@ services:
       hazel-node-1:
         condition: service_healthy
       consul:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8980:8980"
 
@@ -159,7 +123,7 @@ services:
       hazel-node-2:
         condition: service_healthy
       consul:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8981:8981"
 
@@ -182,7 +146,7 @@ services:
       hazel-node-3:
         condition: service_healthy
       consul:
-        condition: service_started
+        condition: service_healthy
 
     ports:
       - "8982:8982"
@@ -202,8 +166,10 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - consul
-      - hazel-node-mq
+      consul:
+        condition: service_healthy
+      hazel-node-mq:
+        condition: service_healthy
     ports:
       - "8180:8180"
 
@@ -222,8 +188,10 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - consul
-      - hazel-node-mq
+      consul:
+        condition: service_healthy
+      hazel-node-mq:
+        condition: service_healthy
     ports:
       - "8181:8181"
 
@@ -242,10 +210,8 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - consul
-      - logging-service-1
-      - messages-service-1
-      - hazel-node-mq
+      consul:
+        condition: service_healthy
     ports:
       - "8000:8000"
 
@@ -261,6 +227,12 @@ services:
     networks:
       - hazelcast-network
       - services-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8500/v1/status/leader"]
+      interval: 2s
+      timeout: 0.5s
+      retries: 10
+      start_period: 10s
 
 networks:
   hazelcast-network:

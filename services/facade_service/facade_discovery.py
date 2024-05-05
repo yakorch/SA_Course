@@ -3,8 +3,7 @@ from services.consul_service.service_registration import (
     register_service,
     consul_cleanup,
 )
-from services.consul_service.service_discovery import discover_service, extract_URLs
-from services.consul_service.KV_lookup import get_consul_value
+from services.consul_service.service_discovery import discover_service
 
 from services.service_names import (
     FACADE_SERVICE_NAME,

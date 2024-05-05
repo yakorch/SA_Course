@@ -40,4 +40,4 @@ async def delete_logs() -> fastapi.Response:
 
 @app.get("/health")
 async def health_check() -> fastapi.Response:
-    return fastapi.Response(content="Facade service is running", status_code=200)
+    return fastapi.Response(content="Logging service is running", status_code=200)

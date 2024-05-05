@@ -17,4 +17,3 @@ atexit.register(consul_cleanup, LOGGING_SERVICE_NAME)
 
 def discover_facade_services():
     return discover_service(FACADE_SERVICE_NAME)
-

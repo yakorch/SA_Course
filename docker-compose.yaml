@@ -8,13 +8,18 @@ x-hz-common-settings: &hz-common-settings
 x-common-env: &hz-common-env
   HZ_CLUSTERNAME: dev
 
+x-consul-env: &consul-env
+  CONSUL_HTTP_ADDR: "http://consul-server:8500"
+
 services:
   hazel-node-1:
     <<: *hz-common-settings
     container_name: hazel-node-1
     environment:
       <<: *hz-common-env
+      <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
+      
     ports:
       - "5701:5701"
 
@@ -23,6 +28,7 @@ services:
     container_name: hazel-node-2
     environment:
       <<: *hz-common-env
+      <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
     ports:
       - "5702:5701"
@@ -32,6 +38,7 @@ services:
     container_name: hazel-node-3
     environment:
       <<: *hz-common-env
+      <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
     ports:
       - "5703:5701"
@@ -42,6 +49,7 @@ services:
     networks:
       - services-network
     environment:
+      <<: *consul-env
       HZ_CLUSTERNAME: mq
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
     ports:
@@ -55,6 +63,8 @@ services:
     networks:
       - hazelcast-network
       - services-network
+    environment:
+      <<: *consul-env
 
   logging-service-1:
     image: logging-service
@@ -65,6 +75,7 @@ services:
     environment:
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
       PORT: 8980
+      <<: *consul-env
     networks:
       - hazelcast-network
       - services-network
@@ -84,6 +95,7 @@ services:
     environment:
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
       PORT: 8981
+      <<: *consul-env
     networks:
       - hazelcast-network
       - services-network
@@ -103,6 +115,7 @@ services:
     environment:
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
       PORT: 8982
+      <<: *consul-env
     networks:
       - hazelcast-network
       - services-network
@@ -122,6 +135,7 @@ services:
     environment:
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
       PORT: 8180
+      <<: *consul-env
     networks:
       - services-network
     volumes:
@@ -140,6 +154,7 @@ services:
     environment:
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
       PORT: 8181
+      <<: *consul-env
     networks:
       - services-network
     volumes:
@@ -158,6 +173,7 @@ services:
     environment:
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
       PORT: 8000
+      <<: *consul-env
     networks:
       - services-network
     volumes:
@@ -171,6 +187,17 @@ services:
       - hazel-node-mq
     ports:
       - "8000:8000"
+
+  consul:
+    image: hashicorp/consul:latest
+    command: "consul agent -dev -server -ui -node=server -bootstrap-expect=1 -client=0.0.0.0"
+    container_name: consul-server
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    networks:
+      - hazelcast-network
+      - services-network
 
 networks:
   hazelcast-network:

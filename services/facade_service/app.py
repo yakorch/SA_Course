@@ -7,6 +7,9 @@ from services.endpoints import *
 from services.messaging_queue import mq_producer
 from services.logging_setup import *
 
+from services.facade_service.facade_discovery import consul_client
+
+
 app = fastapi.FastAPI()
 
 
@@ -52,3 +55,8 @@ async def get_messages() -> tuple[list[str], list[str]]:
         )
 
     return logged_messages_response.json(), message_service_response.json()
+
+
+@app.get("/health")
+async def health_check() -> fastapi.Response:
+    return fastapi.Response(content="Facade service is running", status_code=200)

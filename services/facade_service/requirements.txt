@@ -3,3 +3,4 @@ pydantic
 fastapi
 requests
 hazelcast-python-client
+py-consul

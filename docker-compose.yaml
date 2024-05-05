@@ -8,8 +8,18 @@ x-hz-common-settings: &hz-common-settings
 x-common-env: &hz-common-env
   HZ_CLUSTERNAME: dev
 
+x-healthcheck: &healthcheck
+  healthcheck:
+    test:
+      ["CMD", "curl", "-f", "http://localhost:5701/hazelcast/health/node-state"]
+    interval: 55s
+    timeout: 2s
+    retries: 25
+    start_period: 5s
+
 x-consul-env: &consul-env
-  CONSUL_HTTP_ADDR: "http://consul-server:8500"
+  CONSUL_HOST: "consul"
+  CONSUL_PORT: 8500
 
 services:
   hazel-node-1:
@@ -19,7 +29,7 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
-      
+    <<: *healthcheck
     ports:
       - "5701:5701"
 
@@ -30,6 +40,7 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
+    <<: *healthcheck
     ports:
       - "5702:5701"
 
@@ -40,6 +51,7 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
+    <<: *healthcheck
     ports:
       - "5703:5701"
 
@@ -65,6 +77,9 @@ services:
       - services-network
     environment:
       <<: *consul-env
+    depends_on:
+      - hazel-node-1
+      - hazel-node-mq
 
   logging-service-1:
     image: logging-service
@@ -82,7 +97,10 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - hazel-node-1
+      hazel-node-1:
+        condition: service_healthy
+      consul:
+        condition: service_started
     ports:
       - "8980:8980"
 
@@ -102,7 +120,10 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - hazel-node-2
+      hazel-node-2:
+        condition: service_healthy
+      consul:
+        condition: service_started
     ports:
       - "8981:8981"
 
@@ -122,7 +143,11 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - hazel-node-3
+      hazel-node-3:
+        condition: service_healthy
+      consul:
+        condition: service_started
+
     ports:
       - "8982:8982"
 
@@ -141,6 +166,7 @@ services:
     volumes:
       - .:/code
     depends_on:
+      - consul
       - hazel-node-mq
     ports:
       - "8180:8180"
@@ -160,6 +186,7 @@ services:
     volumes:
       - .:/code
     depends_on:
+      - consul
       - hazel-node-mq
     ports:
       - "8181:8181"
@@ -179,19 +206,19 @@ services:
     volumes:
       - .:/code
     depends_on:
+      - consul
       - logging-service-1
-      - logging-service-2
-      - logging-service-3
       - messages-service-1
-      - messages-service-2
       - hazel-node-mq
     ports:
       - "8000:8000"
 
   consul:
     image: hashicorp/consul:latest
-    command: "consul agent -dev -server -ui -node=server -bootstrap-expect=1 -client=0.0.0.0"
+    command: "/bin/sh -c 'sh /consul-population.sh'"
     container_name: consul-server
+    volumes:
+      - ./consul-population.sh:/consul-population.sh
     ports:
       - "8500:8500"
       - "8600:8600/udp"

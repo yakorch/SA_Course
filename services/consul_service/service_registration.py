@@ -1,6 +1,7 @@
 from services.consul_service.consul_connection import consul_client
 
 import os
+import socket
 
 
 def get_service_identifier(service_name: str):
@@ -14,8 +15,7 @@ def register_service(service_name: str) -> None:
     service_id = get_service_identifier(service_name)
     service_port = int(os.getenv("PORT"))
 
-    # service name is routed to service IP thanks to Docker's internal DNS
-    service_address = service_name
+    service_address = socket.gethostbyname(socket.gethostname())
 
     consul_client.agent.service.register(
         name=service_name,

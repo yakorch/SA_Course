@@ -1,9 +1,8 @@
 import fastapi
 from services.message import Message
-from services.endpoints import *
 from services.logging_service.logging import log_message, read_messages, clean_logs
 from services.logging_setup import *
-
+from services.logging_service.logging_discovery import *
 
 app = fastapi.FastAPI()
 
@@ -37,3 +36,8 @@ async def delete_logs() -> fastapi.Response:
         )
     logging.info("All logs deleted!")
     return fastapi.Response(content="Logs deleted", status_code=200)
+
+
+@app.get("/health")
+async def health_check() -> fastapi.Response:
+    return fastapi.Response(content="Facade service is running", status_code=200)

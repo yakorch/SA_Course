@@ -11,4 +11,5 @@ def read_consul_address():
 def get_consul_client():
     return consul.Consul(**read_consul_address(), scheme="http")
 
+
 consul_client = get_consul_client()

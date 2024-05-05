@@ -8,15 +8,6 @@ x-hz-common-settings: &hz-common-settings
 x-common-env: &hz-common-env
   HZ_CLUSTERNAME: dev
 
-x-healthcheck: &healthcheck
-  healthcheck:
-    test:
-      ["CMD", "curl", "-f", "http://localhost:5701/hazelcast/health/node-state"]
-    interval: 55s
-    timeout: 2s
-    retries: 25
-    start_period: 5s
-
 x-consul-env: &consul-env
   CONSUL_HOST: "consul"
   CONSUL_PORT: 8500
@@ -29,7 +20,18 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
-    <<: *healthcheck
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:5701/hazelcast/health/node-state",
+        ]
+      interval: 5s
+      timeout: 1s
+      retries: 25
+      start_period: 10s
     ports:
       - "5701:5701"
 
@@ -40,7 +42,18 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
-    <<: *healthcheck
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:5702/hazelcast/health/node-state",
+        ]
+      interval: 5s
+      timeout: 1s
+      retries: 25
+      start_period: 10s
     ports:
       - "5702:5701"
 
@@ -51,7 +64,18 @@ services:
       <<: *hz-common-env
       <<: *consul-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
-    <<: *healthcheck
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:5703/hazelcast/health/node-state",
+        ]
+      interval: 5s
+      timeout: 1s
+      retries: 25
+      start_period: 10s
     ports:
       - "5703:5701"
 
@@ -64,6 +88,18 @@ services:
       <<: *consul-env
       HZ_CLUSTERNAME: mq
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:5704/hazelcast/health/node-state",
+        ]
+      interval: 5s
+      timeout: 1s
+      retries: 25
+      start_period: 10s
     ports:
       - "5704:5701"
 

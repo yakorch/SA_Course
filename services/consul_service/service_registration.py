@@ -1,16 +1,6 @@
-import consul
+from services.consul_service.consul_connection import consul_client
+
 import os
-import atexit
-
-
-def read_consul_address():
-    host = os.getenv("CONSUL_HOST")
-    port = int(os.getenv("CONSUL_PORT"))
-    return {"host": host, "port": port}
-
-
-def get_consul_client():
-    return consul.Consul(**read_consul_address(), scheme="http")
 
 
 def get_service_identifier(service_name: str):
@@ -21,7 +11,6 @@ def register_service(service_name: str) -> None:
     """
     `PORT` is assumed to be an env. variable. Can be set in the Dockerfile.
     """
-    consul_client = get_consul_client()
     service_id = get_service_identifier(service_name)
     service_port = int(os.getenv("PORT"))
 
@@ -42,8 +31,6 @@ def register_service(service_name: str) -> None:
 
 
 def consul_cleanup(service_name: str):
-    consul_client = get_consul_client()
     consul_client.agent.service.deregister(
         service_id=get_service_identifier(service_name)
     )
-

@@ -7,7 +7,7 @@ from services.endpoints import *
 from services.messaging_queue import mq_producer
 from services.logging_setup import *
 
-from services.facade_service.facade_discovery import consul_client
+from services.facade_service.facade_discovery import *
 
 
 app = fastapi.FastAPI()

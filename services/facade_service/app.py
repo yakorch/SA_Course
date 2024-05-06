@@ -13,7 +13,7 @@ from services.facade_service.facade_discovery import *
 from services.consul_service.service_discovery import extract_URLs
 
 
-app = fastapi.FastAPI(title="Facade Service")
+app = fastapi.FastAPI()
 
 
 @app.post("/message")

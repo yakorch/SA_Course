@@ -4,8 +4,6 @@ from services.logging_setup import *
 from services.consul_service.KV_lookup import get_consul_value
 
 
-logging.warning(f"WARNING? : {os.getenv('HZ_NETWORK_PUBLICADDRESS')} {get_consul_value('hz_mq_cluster_name')}")
-
 
 client = HazelcastClient(
     cluster_members=[os.getenv("HZ_NETWORK_PUBLICADDRESS")],

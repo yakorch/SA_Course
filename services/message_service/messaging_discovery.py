@@ -6,7 +6,6 @@ from services.consul_service.service_registration import (
 from services.consul_service.service_discovery import discover_service
 
 from services.service_names import (
-    FACADE_SERVICE_NAME,
     MESSAGE_SERVICE_NAME,
 )
 

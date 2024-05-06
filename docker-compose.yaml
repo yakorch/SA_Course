@@ -6,20 +6,25 @@ x-hz-common-settings: &hz-common-settings
     - hazelcast-network
 
 x-common-env: &hz-common-env
-  HZ_CLUSTERNAME: dev
+  HZ_CLUSTERNAME: ${HZ_LOGGING_CLUSTER_NAME}
 
 x-consul-env: &consul-env
-  CONSUL_HOST: "consul"
-  CONSUL_PORT: 8500
+  CONSUL_HOST: "${CONSUL_HOST}"
+  CONSUL_PORT: "${CONSUL_PORT}"
 
 x-healthcheck: &healthcheck
   healthcheck:
     test:
-      ["CMD", "curl", "-f", "http://localhost:5701/hazelcast/health/node-state"]
+      [
+        "CMD",
+        "curl",
+        "-f",
+        "http://localhost:${HZ_NODE}/hazelcast/health/node-state",
+      ]
     interval: 3s
     timeout: 1s
-    retries: 25
-    start_period: 10s
+    retries: 10
+    start_period: 5s
 
 services:
   hazel-node-1:
@@ -27,33 +32,24 @@ services:
     container_name: hazel-node-1
     environment:
       <<: *hz-common-env
-      <<: *consul-env
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-1:${HZ_NODE}"
     <<: *healthcheck
-    ports:
-      - "5701:5701"
 
   hazel-node-2:
     <<: *hz-common-settings
     container_name: hazel-node-2
     environment:
       <<: *hz-common-env
-      <<: *consul-env
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-2:${HZ_NODE}"
     <<: *healthcheck
-    ports:
-      - "5702:5701"
 
   hazel-node-3:
     <<: *hz-common-settings
     container_name: hazel-node-3
     environment:
       <<: *hz-common-env
-      <<: *consul-env
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-3:${HZ_NODE}"
     <<: *healthcheck
-    ports:
-      - "5703:5701"
 
   hazel-node-mq:
     image: hazelcast/hazelcast:latest
@@ -61,11 +57,9 @@ services:
     networks:
       - services-network
     environment:
-      <<: *consul-env
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
+      HZ_CLUSTERNAME: "${HZ_MQ_CLUSTER_NAME}"
     <<: *healthcheck
-    ports:
-      - "5704:5701"
 
   management-center:
     image: hazelcast/management-center:latest
@@ -75,11 +69,11 @@ services:
     networks:
       - hazelcast-network
       - services-network
-    environment:
-      <<: *consul-env
     depends_on:
-      - hazel-node-1
-      - hazel-node-mq
+      hazel-node-1:
+        condition: service_started
+      hazel-node-mq:
+        condition: service_started
 
   logging-service-1:
     image: logging-service
@@ -88,9 +82,11 @@ services:
       dockerfile: services/logging_service/Dockerfile
     container_name: logging-service-1
     environment:
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5701"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-1:${HZ_NODE}"
       PORT: 8980
       <<: *consul-env
+    ports:
+      - "8980:8980"
     networks:
       - hazelcast-network
       - services-network
@@ -101,8 +97,6 @@ services:
         condition: service_healthy
       consul:
         condition: service_healthy
-    ports:
-      - "8980:8980"
 
   logging-service-2:
     image: logging-service
@@ -111,9 +105,11 @@ services:
       dockerfile: services/logging_service/Dockerfile
     container_name: logging-service-2
     environment:
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5702"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-2:${HZ_NODE}"
       PORT: 8981
       <<: *consul-env
+    ports:
+      - "8981:8981"
     networks:
       - hazelcast-network
       - services-network
@@ -124,8 +120,6 @@ services:
         condition: service_healthy
       consul:
         condition: service_healthy
-    ports:
-      - "8981:8981"
 
   logging-service-3:
     image: logging-service
@@ -134,9 +128,11 @@ services:
       dockerfile: services/logging_service/Dockerfile
     container_name: logging-service-3
     environment:
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5703"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-3:${HZ_NODE}"
       PORT: 8982
       <<: *consul-env
+    ports:
+      - "8982:8982"
     networks:
       - hazelcast-network
       - services-network
@@ -148,9 +144,6 @@ services:
       consul:
         condition: service_healthy
 
-    ports:
-      - "8982:8982"
-
   messages-service-1:
     image: messages-service
     build:
@@ -158,9 +151,11 @@ services:
       dockerfile: services/message_service/Dockerfile
     container_name: messages-service-1
     environment:
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
       PORT: 8180
       <<: *consul-env
+    ports:
+      - "8180:8180"
     networks:
       - services-network
     volumes:
@@ -170,8 +165,6 @@ services:
         condition: service_healthy
       hazel-node-mq:
         condition: service_healthy
-    ports:
-      - "8180:8180"
 
   messages-service-2:
     image: messages-service
@@ -180,9 +173,11 @@ services:
       dockerfile: services/message_service/Dockerfile
     container_name: messages-service-2
     environment:
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
       PORT: 8181
       <<: *consul-env
+    ports:
+      - "8181:8181"
     networks:
       - services-network
     volumes:
@@ -192,8 +187,6 @@ services:
         condition: service_healthy
       hazel-node-mq:
         condition: service_healthy
-    ports:
-      - "8181:8181"
 
   facade-service:
     image: facade-service
@@ -202,9 +195,11 @@ services:
       dockerfile: services/facade_service/Dockerfile
     container_name: facade-service
     environment:
-      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:5704"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${NZ_NODE}"
       PORT: 8000
       <<: *consul-env
+    ports:
+      - "8000:8000"
     networks:
       - services-network
     volumes:
@@ -212,8 +207,8 @@ services:
     depends_on:
       consul:
         condition: service_healthy
-    ports:
-      - "8000:8000"
+      hazel-node-mq:
+        condition: service_healthy
 
   consul:
     image: hashicorp/consul:latest
@@ -222,17 +217,30 @@ services:
     volumes:
       - ./consul-population.sh:/consul-population.sh
     ports:
-      - "8500:8500"
+      - "${CONSUL_PORT}:${CONSUL_PORT}"
       - "8600:8600/udp"
     networks:
       - hazelcast-network
       - services-network
+    environment:
+      HZ_LOGGING_CLUSTER_NAME: "${HZ_LOGGING_CLUSTER_NAME}"
+      HZ_LOGGING_MAPPING_NAME: "${HZ_LOGGING_MAPPING_NAME}"
+
+      HZ_MQ_CLUSTER_NAME: "${HZ_MQ_CLUSTER_NAME}"
+      HZ_MQ_QUEUE_NAME: "${HZ_MQ_QUEUE_NAME}"
+
+      CONSUL_ESSENTIAL_KEY: "${CONSUL_ESSENTIAL_KEY}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8500/v1/status/leader"]
-      interval: 2s
-      timeout: 0.5s
-      retries: 10
-      start_period: 10s
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://${CONSUL_HOST}:${CONSUL_PORT}/v1/kv/${CONSUL_ESSENTIAL_KEY}",
+        ]
+      interval: 5s
+      timeout: 1s
+      retries: 3
 
 networks:
   hazelcast-network:

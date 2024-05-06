@@ -1,54 +1,34 @@
-# Adding Messaging Queue between Facade and Messages services
-First, set an environment variable `HOST_IP` to your IP address:
-```shell
-export HOST_IP=$(ifconfig en0 | awk '/inet /{print $2}')  # macOS
-export HOST_IP=$(hostname -I | awk '{print $1}')  # Linux
-```
+# Consul for Service Discovery and Config Server
+
 Start all the services with:
 ```bash
 docker-compose up -d
 ```
+## Motivation
+Messaging and Logging services are implemented so that they can be easily scaled horizontally.
+Also, the number of services may vary for different load or because of networking issues.
 
-### Facade Service Logic
-- `POST` endpoint sends the message to a logging service and to 1 random messages service.
-	- The message and Facade services are connected via Messaging Queue via Hazelcast.
-	- A random message service instance picks up the item from the queue and saves it.
-- `GET` endpoint reads all logged messages from the logging service and in-memory messages from 1 of the messages services.
-	- 2 lists are returned: all the logged messages and those stored in-memory.
-### Messaging Queue Consumption
-A separate thread is started [here](./services/messaging_queue/mq_consumer.py#L26) to free up the main process from something more important.
-An in-memory mapping has an associated lock to ensure thread-safety. The lock is used when the new item is encountered or the saved messages have been requested.
+The services that rely on such dynamic service instances need a robust way to get the currently healthy endpoints and use them.
 
-### `docker-compose` comments
-2 networks are created for different Hazelcast clusters:
-- for all messages logging;
-- for messaging queue.
-Service ports are accessed through environment variables to allow adaptability.
+Consul solves this problem. Whenever the service is created, it registers itself in the services registry. From time to time Consul checks whether the registered services are still healthy by running a quick health check. I used REST API for this.
+
+Consul allows to store Key-Value (KV) pairs for services configuration. This allows to read the necessary config information rather than hard-code it. For example, Logging service uses a Hazelcast distributed map, which name is saved in KV consul pairs.
+
+Each service is identified based on the [service name](./services/service_names.py) and the port it uses.
+
+## Consul service implementation | Python
+The consul interactions are stored [here](./services/consul_service). Consul connection, KV lookup, service discovery, and service registration are defined there.
+Every service uses this API.
+
+## Consul service implementation | Docker
+The [population script](consul-population.sh) is run at the start of consul service. It waits until the consul has initialized, populates KV dictionary, and then puts `CONSUL_ESSENTIAL_KEY` to let other services know that the initialization has completed. From now on, the service is considered **healthy** and this is marked in [`docker-compose`](./docker-compose.yaml#L233).
+
 ## Testing
-### Posting 10 messages `msg{i}`
-![last message sent verification](./media/msg_sent.png)
-### Logs received by Logging services
-![logs received](./media/logging_messages_received.png)
-### Messages received by Messaging Services
-![messaging services received](./media/message_service_received.png)
-### Combining `GET` Requests
+...
 
-<table>
-  <tr>
-    <td>
-      <img src="./media/first_GET.png" alt="first GET" style="width: 100%;"/>
-    </td>
-    <td>
-      <img src="media/second_GET.png" alt="second GET" style="width: 100%;"/>
-    </td>
-  </tr>
-</table>
-
-We see that all logged messages were retrieved every time, and that the union of two requests for the messaging service also results in all the sent messages.
 ## Cleanup
 
 ```bash
-unset HOST_IP
-docker-compose down --rmi local
+docker-compose down
 docker rmi facade-service messages-service logging-service
 ```

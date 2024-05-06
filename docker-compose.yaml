@@ -19,11 +19,11 @@ x-healthcheck: &healthcheck
         "CMD",
         "curl",
         "-f",
-        "http://localhost:${HZ_NODE}/hazelcast/health/node-state",
+        "http://localhost:${INTERNAL_HZ_LOG_NODE}/hazelcast/health/node-state",
       ]
     interval: 3s
     timeout: 1s
-    retries: 10
+    retries: 15
     start_period: 5s
 
 x-logging-common-settings: &logging-common-settings
@@ -31,10 +31,6 @@ x-logging-common-settings: &logging-common-settings
   build:
     context: .
     dockerfile: services/logging_service/Dockerfile
-  environment:
-    HZ_NETWORK_PUBLICADDRESS: "hazel-node-log-1:${HZ_NODE}"
-    PORT: ${LOGGING_PORT}
-    <<: *consul-env
   networks:
     - hazelcast-network
     - services-network
@@ -51,10 +47,6 @@ x-messaging-common-settings: &messaging-common-settings
   build:
     context: .
     dockerfile: services/message_service/Dockerfile
-  environment:
-    HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
-    PORT: "${MESSAGES_PORT}"
-    <<: *consul-env
   networks:
     - services-network
   volumes:
@@ -70,10 +62,6 @@ x-facade-common-settings: &facade-common-settings
   build:
     context: .
     dockerfile: services/facade_service/Dockerfile
-  environment:
-    HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
-    PORT: ${FACADE_PORT}
-    <<: *consul-env
   networks:
     - services-network
   volumes:
@@ -90,7 +78,7 @@ services:
     container_name: hazel-node-log-1
     environment:
       <<: *hz-common-env
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-log-1:${HZ_NODE}"
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_1}"
     <<: *healthcheck
 
   hazel-node-log-2:
@@ -98,7 +86,7 @@ services:
     container_name: hazel-node-log-2
     environment:
       <<: *hz-common-env
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-log-2:${HZ_NODE}"
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_2}"
     <<: *healthcheck
 
   hazel-node-log-3:
@@ -106,7 +94,7 @@ services:
     container_name: hazel-node-log-3
     environment:
       <<: *hz-common-env
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-log-3:${HZ_NODE}"
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_3}"
     <<: *healthcheck
 
   hazel-node-mq:
@@ -115,7 +103,7 @@ services:
     networks:
       - services-network
     environment:
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_MQ_NODE}"
       HZ_CLUSTERNAME: "${HZ_MQ_CLUSTER_NAME}"
     <<: *healthcheck
 
@@ -136,42 +124,70 @@ services:
   logging-service-1:
     <<: *logging-common-settings
     container_name: logging-service-1
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_1}"
+      PORT: ${LOGGING_PORT}
+      <<: *consul-env
     ports:
       - "8101:${LOGGING_PORT}"
 
   logging-service-2:
     <<: *logging-common-settings
     container_name: logging-service-2
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_2}"
+      PORT: ${LOGGING_PORT}
+      <<: *consul-env
     ports:
       - "8102:${LOGGING_PORT}"
 
   logging-service-3:
     <<: *logging-common-settings
     container_name: logging-service-3
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_3}"
+      PORT: ${LOGGING_PORT}
+      <<: *consul-env
     ports:
       - "8103:${LOGGING_PORT}"
 
   messages-service-1:
     <<: *messaging-common-settings
     container_name: messages-service-1
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_MQ_NODE}"
+      PORT: "${MESSAGES_PORT}"
+      <<: *consul-env
     ports:
       - "8181:${MESSAGES_PORT}"
 
   messages-service-2:
     <<: *messaging-common-settings
     container_name: messages-service-2
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_MQ_NODE}"
+      PORT: "${MESSAGES_PORT}"
+      <<: *consul-env
     ports:
       - "8182:${MESSAGES_PORT}"
 
   facade-service-1:
     <<: *facade-common-settings
     container_name: facade-service-1
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_MQ_NODE}"
+      PORT: ${FACADE_PORT}
+      <<: *consul-env
     ports:
       - "8001:${FACADE_PORT}"
 
   facade-service-2:
     <<: *facade-common-settings
     container_name: facade-service-2
+    environment:
+      HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_MQ_NODE}"
+      PORT: ${FACADE_PORT}
+      <<: *consul-env
     ports:
       - "8002:${FACADE_PORT}"
 

@@ -19,7 +19,7 @@ x-healthcheck: &healthcheck
         "CMD",
         "curl",
         "-f",
-        "http://localhost:${INTERNAL_HZ_LOG_NODE}/hazelcast/health/node-state",
+        "http://localhost:${INTERNAL_HZ_NODE}/hazelcast/health/node-state",
       ]
     interval: 3s
     timeout: 1s
@@ -80,6 +80,8 @@ services:
       <<: *hz-common-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_1}"
     <<: *healthcheck
+    ports:
+      - "${EXTERNAL_HZ_LOG_NODE_1}:${INTERNAL_HZ_NODE}"
 
   hazel-node-log-2:
     <<: *hz-common-settings
@@ -88,6 +90,8 @@ services:
       <<: *hz-common-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_2}"
     <<: *healthcheck
+    ports:
+     - "${EXTERNAL_HZ_LOG_NODE_2}:${INTERNAL_HZ_NODE}"
 
   hazel-node-log-3:
     <<: *hz-common-settings
@@ -96,6 +100,8 @@ services:
       <<: *hz-common-env
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_LOG_NODE_3}"
     <<: *healthcheck
+    ports:
+     - "${EXTERNAL_HZ_LOG_NODE_3}:${INTERNAL_HZ_NODE}"
 
   hazel-node-mq:
     image: hazelcast/hazelcast:latest
@@ -106,6 +112,8 @@ services:
       HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_MQ_NODE}"
       HZ_CLUSTERNAME: "${HZ_MQ_CLUSTER_NAME}"
     <<: *healthcheck
+    ports:
+      - "${EXTERNAL_HZ_MQ_NODE}:${INTERNAL_HZ_NODE}"
 
   management-center:
     image: hazelcast/management-center:latest

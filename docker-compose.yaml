@@ -135,32 +135,43 @@ services:
 
   logging-service-1:
     <<: *logging-common-settings
+    container_name: logging-service-1
     ports:
       - "8101:${LOGGING_PORT}"
+
   logging-service-2:
     <<: *logging-common-settings
+    container_name: logging-service-2
     ports:
       - "8102:${LOGGING_PORT}"
+
   logging-service-3:
     <<: *logging-common-settings
+    container_name: logging-service-3
     ports:
       - "8103:${LOGGING_PORT}"
 
   messages-service-1:
     <<: *messaging-common-settings
+    container_name: messages-service-1
     ports:
       - "8181:${MESSAGES_PORT}"
+
   messages-service-2:
     <<: *messaging-common-settings
+    container_name: messages-service-2
     ports:
       - "8182:${MESSAGES_PORT}"
 
   facade-service-1:
     <<: *facade-common-settings
+    container_name: facade-service-1
     ports:
       - "8001:${FACADE_PORT}"
+
   facade-service-2:
     <<: *facade-common-settings
+    container_name: facade-service-2
     ports:
       - "8002:${FACADE_PORT}"
 

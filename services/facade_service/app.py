@@ -24,6 +24,7 @@ async def post_message(text: str) -> fastapi.Response:
     message = Message(**message_json)
 
     logging_URLs = extract_URLs(discover_logging_services())
+
     if not logging_URLs:
         logging.error("Failed to log message. URLs list's empty")
         return fastapi.Response(
@@ -32,6 +33,7 @@ async def post_message(text: str) -> fastapi.Response:
 
     chosen_logging_URL = random.choice(logging_URLs)
 
+    logging.info(f"Logging URL chosen: {chosen_logging_URL}")
     logger_response = requests.post(f"{chosen_logging_URL}/log", json=message_json)
 
     if logger_response.status_code != 201:

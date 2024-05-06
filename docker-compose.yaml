@@ -26,29 +26,87 @@ x-healthcheck: &healthcheck
     retries: 10
     start_period: 5s
 
+x-logging-common-settings: &logging-common-settings
+  image: logging-service
+  build:
+    context: .
+    dockerfile: services/logging_service/Dockerfile
+  environment:
+    HZ_NETWORK_PUBLICADDRESS: "hazel-node-log-1:${HZ_NODE}"
+    PORT: ${LOGGING_PORT}
+    <<: *consul-env
+  networks:
+    - hazelcast-network
+    - services-network
+  volumes:
+    - .:/code
+  depends_on:
+    hazel-node-log-1:
+      condition: service_healthy
+    consul:
+      condition: service_healthy
+
+x-messaging-common-settings: &messaging-common-settings
+  image: messages-service
+  build:
+    context: .
+    dockerfile: services/message_service/Dockerfile
+  environment:
+    HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
+    PORT: "${MESSAGES_PORT}"
+    <<: *consul-env
+  networks:
+    - services-network
+  volumes:
+    - .:/code
+  depends_on:
+    consul:
+      condition: service_healthy
+    hazel-node-mq:
+      condition: service_healthy
+
+x-facade-common-settings: &facade-common-settings
+  image: facade-service
+  build:
+    context: .
+    dockerfile: services/facade_service/Dockerfile
+  environment:
+    HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
+    PORT: ${FACADE_PORT}
+    <<: *consul-env
+  networks:
+    - services-network
+  volumes:
+    - .:/code
+  depends_on:
+    consul:
+      condition: service_healthy
+    hazel-node-mq:
+      condition: service_healthy
+
 services:
-  hazel-node-1:
+  hazel-node-log-1:
     <<: *hz-common-settings
-    container_name: hazel-node-1
+    container_name: hazel-node-log-1
     environment:
       <<: *hz-common-env
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-1:${HZ_NODE}"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-log-1:${HZ_NODE}"
     <<: *healthcheck
 
-  hazel-node-2:
+  hazel-node-log-2:
     <<: *hz-common-settings
-    container_name: hazel-node-2
+    container_name: hazel-node-log-2
     environment:
       <<: *hz-common-env
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-2:${HZ_NODE}"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-log-2:${HZ_NODE}"
     <<: *healthcheck
 
-  hazel-node-3:
+  hazel-node-log-3:
     <<: *hz-common-settings
-    container_name: hazel-node-3
+    container_name: hazel-node-log-3
     environment:
       <<: *hz-common-env
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-3:${HZ_NODE}"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-log-3:${HZ_NODE}"
     <<: *healthcheck
 
   hazel-node-mq:
@@ -70,145 +128,41 @@ services:
       - hazelcast-network
       - services-network
     depends_on:
-      hazel-node-1:
+      hazel-node-log-1:
         condition: service_started
       hazel-node-mq:
         condition: service_started
 
   logging-service-1:
-    image: logging-service
-    build:
-      context: .
-      dockerfile: services/logging_service/Dockerfile
-    container_name: logging-service-1
-    environment:
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-1:${HZ_NODE}"
-      PORT: 8980
-      <<: *consul-env
+    <<: *logging-common-settings
     ports:
-      - "8980:8980"
-    networks:
-      - hazelcast-network
-      - services-network
-    volumes:
-      - .:/code
-    depends_on:
-      hazel-node-1:
-        condition: service_healthy
-      consul:
-        condition: service_healthy
-
+      - "8101:${LOGGING_PORT}"
   logging-service-2:
-    image: logging-service
-    build:
-      context: .
-      dockerfile: services/logging_service/Dockerfile
-    container_name: logging-service-2
-    environment:
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-2:${HZ_NODE}"
-      PORT: 8981
-      <<: *consul-env
+    <<: *logging-common-settings
     ports:
-      - "8981:8981"
-    networks:
-      - hazelcast-network
-      - services-network
-    volumes:
-      - .:/code
-    depends_on:
-      hazel-node-2:
-        condition: service_healthy
-      consul:
-        condition: service_healthy
-
+      - "8102:${LOGGING_PORT}"
   logging-service-3:
-    image: logging-service
-    build:
-      context: .
-      dockerfile: services/logging_service/Dockerfile
-    container_name: logging-service-3
-    environment:
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-3:${HZ_NODE}"
-      PORT: 8982
-      <<: *consul-env
+    <<: *logging-common-settings
     ports:
-      - "8982:8982"
-    networks:
-      - hazelcast-network
-      - services-network
-    volumes:
-      - .:/code
-    depends_on:
-      hazel-node-3:
-        condition: service_healthy
-      consul:
-        condition: service_healthy
+      - "8103:${LOGGING_PORT}"
 
   messages-service-1:
-    image: messages-service
-    build:
-      context: .
-      dockerfile: services/message_service/Dockerfile
-    container_name: messages-service-1
-    environment:
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
-      PORT: 8180
-      <<: *consul-env
+    <<: *messaging-common-settings
     ports:
-      - "8180:8180"
-    networks:
-      - services-network
-    volumes:
-      - .:/code
-    depends_on:
-      consul:
-        condition: service_healthy
-      hazel-node-mq:
-        condition: service_healthy
-
+      - "8181:${MESSAGES_PORT}"
   messages-service-2:
-    image: messages-service
-    build:
-      context: .
-      dockerfile: services/message_service/Dockerfile
-    container_name: messages-service-2
-    environment:
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
-      PORT: 8181
-      <<: *consul-env
+    <<: *messaging-common-settings
     ports:
-      - "8181:8181"
-    networks:
-      - services-network
-    volumes:
-      - .:/code
-    depends_on:
-      consul:
-        condition: service_healthy
-      hazel-node-mq:
-        condition: service_healthy
+      - "8182:${MESSAGES_PORT}"
 
-  facade-service:
-    image: facade-service
-    build:
-      context: .
-      dockerfile: services/facade_service/Dockerfile
-    container_name: facade-service
-    environment:
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
-      PORT: 8000
-      <<: *consul-env
+  facade-service-1:
+    <<: *facade-common-settings
     ports:
-      - "8000:8000"
-    networks:
-      - services-network
-    volumes:
-      - .:/code
-    depends_on:
-      consul:
-        condition: service_healthy
-      hazel-node-mq:
-        condition: service_healthy
+      - "8001:${FACADE_PORT}"
+  facade-service-2:
+    <<: *facade-common-settings
+    ports:
+      - "8002:${FACADE_PORT}"
 
   consul:
     image: hashicorp/consul:latest

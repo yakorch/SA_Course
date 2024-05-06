@@ -5,7 +5,11 @@ import socket
 
 
 def get_service_identifier(service_name: str):
-    return f"{service_name} | {os.getenv('PORT')}"
+    """
+    Pair (`service_name`, `IP address`) is unique.
+    """
+    host = socket.gethostbyname(socket.gethostname())
+    return f"{service_name} | {host}"
 
 
 def register_service(service_name: str) -> None:

@@ -21,7 +21,7 @@ The consul interactions are stored [here](./services/consul_service). Consul con
 Every service uses this API.
 
 ## Consul service implementation | Docker
-The [population script](consul-population.sh) is run at the start of consul service. It waits until the consul has initialized, populates KV dictionary, and then puts `CONSUL_ESSENTIAL_KEY` to let other services know that the initialization has completed. From now on, the service is considered **healthy** and this is marked in [`docker-compose`](./docker-compose.yaml#L233).
+The [population script](consul-population.sh) is run at the start of consul service. It waits until the consul has initialized, populates KV dictionary, and then puts `CONSUL_ESSENTIAL_KEY` to let other services know that the population has completed. From now on, the service is considered **healthy** and this is marked in [`docker-compose`](./docker-compose.yaml#L233).
 
 ## Testing
 ...

@@ -195,7 +195,7 @@ services:
       dockerfile: services/facade_service/Dockerfile
     container_name: facade-service
     environment:
-      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${NZ_NODE}"
+      HZ_NETWORK_PUBLICADDRESS: "hazel-node-mq:${HZ_NODE}"
       PORT: 8000
       <<: *consul-env
     ports:

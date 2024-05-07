@@ -6,7 +6,7 @@ x-hz-common-settings: &hz-common-settings
     - hazelcast-network
 
 x-common-env: &hz-common-env
-  HZ_CLUSTERNAME: ${HZ_LOGGING_CLUSTER_NAME}
+  HZ_CLUSTERNAME: "${HZ_LOGGING_CLUSTER_NAME}"
 
 x-consul-env: &consul-env
   CONSUL_HOST: "${CONSUL_HOST}"
@@ -36,11 +36,6 @@ x-logging-common-settings: &logging-common-settings
     - services-network
   volumes:
     - .:/code
-  depends_on:
-    hazel-node-log-1:
-      condition: service_healthy
-    consul:
-      condition: service_healthy
 
 x-messaging-common-settings: &messaging-common-settings
   image: messages-service
@@ -51,7 +46,6 @@ x-messaging-common-settings: &messaging-common-settings
     HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_MQ_NODE}"
     PORT: "${MESSAGES_PORT}"
     <<: *consul-env
-
   networks:
     - services-network
   volumes:
@@ -71,7 +65,6 @@ x-facade-common-settings: &facade-common-settings
     HZ_NETWORK_PUBLICADDRESS: "${HOST_IP}:${EXTERNAL_HZ_MQ_NODE}"
     PORT: ${FACADE_PORT}
     <<: *consul-env
-
   networks:
     - services-network
   volumes:
@@ -148,6 +141,11 @@ services:
       <<: *consul-env
     ports:
       - "8101:${LOGGING_PORT}"
+    depends_on:
+      hazel-node-log-1:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
 
   logging-service-2:
     <<: *logging-common-settings
@@ -158,6 +156,11 @@ services:
       <<: *consul-env
     ports:
       - "8102:${LOGGING_PORT}"
+    depends_on:
+      hazel-node-log-2:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
 
   logging-service-3:
     <<: *logging-common-settings
@@ -168,6 +171,11 @@ services:
       <<: *consul-env
     ports:
       - "8103:${LOGGING_PORT}"
+    depends_on:
+      hazel-node-log-3:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
 
   messages-service-1:
     <<: *messaging-common-settings

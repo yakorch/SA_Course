@@ -74,7 +74,7 @@ async def get_messages() -> tuple[list[str], list[str]]:
         )
 
     chosen_logging_URL = random.choice(logging_URLs)
-    logged_messages_response = requests.get(f"{chosen_logging_URL}/logs")
+    logged_messages_response = requests.get(f"{chosen_logging_URL}/logs", timeout=0.25)
     if logged_messages_response.status_code != 200:
         return fastapi.Response(
             content="LOGGER: Failed to get messages", status_code=500

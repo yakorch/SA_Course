@@ -8,7 +8,7 @@ def get_service_identifier(service_name: str):
     """
     Pair (`service_name`, `IP address`) is unique.
     """
-    host = socket.gethostbyname(socket.gethostname())
+    host = socket.gethostname()
     return f"{service_name} | {host}"
 
 
@@ -19,7 +19,7 @@ def register_service(service_name: str) -> None:
     service_id = get_service_identifier(service_name)
     service_port = int(os.getenv("PORT"))
 
-    service_address = socket.gethostbyname(socket.gethostname())
+    service_address = socket.gethostname()
 
     consul_client.agent.service.register(
         name=service_name,

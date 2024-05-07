@@ -3,7 +3,7 @@ import logging
 
 
 def discover_service(service_name: str) -> list[dict]:
-    _, services = consul_client.catalog.service(service_name)
+    _, services = consul_client.health.service(service_name, passing=True)
     return services
 
 
@@ -13,12 +13,14 @@ def extract_URLs(services: list[dict]) -> list[str]:
     """
 
     URLs = []
-    for service in services:
-        ip_address = service["ServiceAddress"]
-        port = service["ServicePort"]
 
-        url = f"http://{ip_address}:{port}"
-        URLs.append(url)
+    for service in services:
+        if "Service" in service:
+            service_details = service["Service"]
+            ip_address = service_details["Address"]
+            port = service_details["Port"]
+            url = f"http://{ip_address}:{port}"
+            URLs.append(url)
 
     logging.info(f"Extracted URLs: {URLs}")
 

@@ -17,7 +17,7 @@ The branches store key changes made when developing a final app. Completed roadm
 
 - [`micro_hazelcast` branch](https://github.com/yakorch/SA_Course/tree/hazelcast?tab=readme-ov-file) combines the previous two branches and shows the independence of the Logging service instances on the message-receiving node thanks to the `Hazelcast`'s distributed map.
 - [`micro_mq` branch](https://github.com/yakorch/SA_Course/tree/micro_mq) shows how the messaging queue can be used to implement a publisher-subscriber methodology. The Facade service pushes the message to the queue, and one of the Messaging service instances pops it.
-- [micro_consul branch](https://github.com/yakorch/SA_Course/tree/micro_consul)  uses a consul -- the service that acts as a proxy for inter-service communication.
+- [`micro_consul` branch](https://github.com/yakorch/SA_Course/tree/micro_consul)  uses a consul -- the service that acts as a proxy for inter-service communication.
 	Each service registers itself via consul, and from time to time sends its health status to know whether the service is responsive.
 	Whenever one service needs to send a request to another service, it asks the Consul service for healthy services at the moment.
 	Consul server provides the way to save Key-Value pairs (shared between all connected services) in a safe environment.
